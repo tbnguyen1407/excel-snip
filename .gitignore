@@ -1,0 +1,15 @@
+# ignore everything except folders
+*
+!*/
+
+## allow
+!/.config/goreleaser.yaml
+!/.github/**
+!/.vscode/launch.json
+!/samples/*
+!/.gitignore
+!/CHANGELOG.md
+!/go.mod
+!/go.sum
+!/main.go
+!/README.md
