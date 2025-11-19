@@ -22,6 +22,9 @@ go build .
 ## Run
 
 ```shell
+// (optional) open browser to perform any login
+excel-snip --browse
+
 // execute
 excel-snip --book samples/book.xlsx
 
