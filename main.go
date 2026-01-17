@@ -197,6 +197,7 @@ func getUserDataDir() string {
 	}
 	return path.Join(cacheDir, "excel-fill", "userdata")
 }
+
 func exitOnError(e error) {
 	if e != nil {
 		slog.Error("terminating", "error", e)
