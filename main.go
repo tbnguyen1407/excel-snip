@@ -46,7 +46,7 @@ func main() {
 	flag.StringVar(&filter, "filter", "GPLS-", "Cell content filter")
 	flag.StringVar(&template, "template", "https://sgtechstack.atlassian.net/browse/__VALUE__", "URL template (use __VALUE__ placeholder for cell content)")
 	flag.StringVar(&resolution, "resolution", "1920,1080", "Browser page resolution")
-	flag.IntVar(&timeout, "timeout", 60_000, "Browser page timeout (ms)")
+	flag.IntVar(&timeout, "timeout", 30_000, "Browser page timeout (ms)")
 	flag.StringVar(&outDirPath, "out", "out", "Path to output directory")
 	flag.BoolVar(&debug, "debug", false, "Show browser window during execution")
 	flag.BoolVar(&browse, "browse", false, "Open browser")
@@ -153,21 +153,21 @@ func main() {
 		slog.Info("match", "in", issue, "url", url, "out", outFilePath)
 
 		// navigate
-		pageWithTimeout := page.Timeout(time.Duration(timeout) * time.Millisecond)
-		e = pageWithTimeout.WaitStable(1 * time.Second)
-		e = pageWithTimeout.Navigate(url)
+		e = page.Timeout(time.Duration(timeout) * time.Millisecond).Navigate(url)
 		if e != nil {
 			slog.Warn("skipping screenshot", "url", url, "error", e)
 			continue
 		}
 
+		// wait
+		e = page.WaitStable(1 * time.Second)
 		if e != nil {
 			slog.Warn("skipping screenshot", "url", url, "error", e)
 			continue
 		}
 
 		// capture
-		img, e := pageWithTimeout.Screenshot(false, nil)
+		img, e := page.Screenshot(false, nil)
 		if e != nil {
 			slog.Warn("skipping screenshot", "url", url, "error", e)
 			continue
