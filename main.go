@@ -36,6 +36,7 @@ func main() {
 	var timeout int
 	var outDirPath string
 	var browse bool
+	var debug bool
 	var versionFlag bool
 
 	// parse flags
@@ -47,6 +48,7 @@ func main() {
 	flag.StringVar(&resolution, "resolution", "1920,1080", "Browser page resolution")
 	flag.IntVar(&timeout, "timeout", 60_000, "Browser page timeout (ms)")
 	flag.StringVar(&outDirPath, "out", "out", "Path to output directory")
+	flag.BoolVar(&debug, "debug", false, "Show browser window during execution")
 	flag.BoolVar(&browse, "browse", false, "Open browser")
 	flag.BoolVar(&versionFlag, "version", false, "Print version")
 	flag.Parse()
@@ -132,7 +134,7 @@ func main() {
 	exitOnError(e)
 
 	// create browser
-	debugURL := launcher.New().UserDataDir(getUserDataDir()).MustLaunch()
+	debugURL := launcher.New().Headless(!debug).UserDataDir(getUserDataDir()).MustLaunch()
 	browser := rod.New().ControlURL(debugURL).MustConnect()
 	defer browser.MustClose()
 	page := browser.MustPage()
@@ -152,13 +154,13 @@ func main() {
 
 		// navigate
 		pageWithTimeout := page.Timeout(time.Duration(timeout) * time.Millisecond)
+		e = pageWithTimeout.WaitStable(1 * time.Second)
 		e = pageWithTimeout.Navigate(url)
 		if e != nil {
 			slog.Warn("skipping screenshot", "url", url, "error", e)
 			continue
 		}
 
-		e = pageWithTimeout.WaitStable(1 * time.Second)
 		if e != nil {
 			slog.Warn("skipping screenshot", "url", url, "error", e)
 			continue
