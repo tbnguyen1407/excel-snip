@@ -34,6 +34,7 @@ func main() {
 	var template string
 	var resolution string
 	var timeout int
+	var waitStable int
 	var outDirPath string
 	var browse bool
 	var debug bool
@@ -47,6 +48,7 @@ func main() {
 	flag.StringVar(&template, "template", "https://sgtechstack.atlassian.net/browse/__VALUE__", "URL template (use __VALUE__ placeholder for cell content)")
 	flag.StringVar(&resolution, "resolution", "1920,1080", "Browser page resolution")
 	flag.IntVar(&timeout, "timeout", 30_000, "Browser page timeout (ms)")
+	flag.IntVar(&waitStable, "waitstable", 1_000, "Minimum time to wait for page to become stable (ms)")
 	flag.StringVar(&outDirPath, "out", "out", "Path to output directory")
 	flag.BoolVar(&debug, "debug", false, "Show browser window during execution")
 	flag.BoolVar(&browse, "browse", false, "Open browser")
@@ -92,6 +94,7 @@ func main() {
 	filterRegex := regexp.MustCompile(filter)
 
 	// load book
+	slog.Info("read", "book", bookPath)
 	bookFile, e := excelize.OpenFile(bookPath)
 	exitOnError(e)
 	defer bookFile.Close()
@@ -102,11 +105,12 @@ func main() {
 		exitOnError(errors.New("sheet not found"))
 	}
 
-	// extract issues
+	// extract matches
+	slog.Info("read", "sheet", sheetName)
 	rows, e := bookFile.GetRows(sheetName)
 	exitOnError(e)
 
-	issues := map[string]struct{}{}
+	matches := map[string]struct{}{}
 	for row := 1; row <= len(rows); row++ {
 		// get cell content
 		cellAddr := column + strconv.Itoa(row)
@@ -122,12 +126,13 @@ func main() {
 			continue
 		}
 
-		issues[cellValue] = struct{}{}
+		matches[cellValue] = struct{}{}
 	}
 
-	if len(issues) == 0 {
+	if len(matches) == 0 {
 		return
 	}
+	slog.Info("filter", "column", column, "pattern", filter, "matches", len(matches))
 
 	// ensure output
 	e = os.MkdirAll(outDirPath, 0755)
@@ -143,14 +148,14 @@ func main() {
 	exitOnError(e)
 
 	// take snapshots
-	for issue := range issues {
+	for match := range matches {
 		// construct url
-		url := strings.ReplaceAll(template, "__VALUE__", issue)
+		url := strings.ReplaceAll(template, "__VALUE__", match)
 		// todo: sanitize filename
-		outFileName := issue + ".png"
+		outFileName := match + ".png"
 		outFilePath := path.Join(outDirPath, outFileName)
 
-		slog.Info("match", "in", issue, "url", url, "out", outFilePath)
+		slog.Info("process", "match", match, "url", url, "out", outFilePath)
 
 		// navigate
 		e = page.Timeout(time.Duration(timeout) * time.Millisecond).Navigate(url)
@@ -160,7 +165,7 @@ func main() {
 		}
 
 		// wait
-		e = page.WaitStable(1 * time.Second)
+		e = page.WaitStable(time.Duration(waitStable) * time.Millisecond)
 		if e != nil {
 			slog.Warn("skipping screenshot", "url", url, "error", e)
 			continue
