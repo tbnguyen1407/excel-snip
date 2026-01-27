@@ -200,7 +200,7 @@ func getUserDataDir() string {
 			cacheDir = path.Join(os.Getenv("HOME"), ".cache")
 		}
 	}
-	return path.Join(cacheDir, "excel-fill", "userdata")
+	return path.Join(cacheDir, "excel-snip", "userdata")
 }
 
 func exitOnError(e error) {
