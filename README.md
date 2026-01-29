@@ -19,7 +19,7 @@ Tool to automate screenshots of website URLs in Excel workbook
 go build .
 ```
 
-## Release
+### Release
 
 ```shell
 git tag -a v$version -m "v$version"
