@@ -1,6 +1,6 @@
-module sgts.gitlab-dedicated.com/ben_tran/excel-snip
+module github.com/tbnguyen1407/excel-snip
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/go-rod/rod v0.116.2

@@ -8,11 +8,12 @@
 
 ### Changed
 
-- nothing yet
+- Go 1.26
+- update dependencies
 
 ### Fixed
 
-- nothing yet
+- wrong module path
 
 ### Removed
 
